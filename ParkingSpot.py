@@ -5,6 +5,7 @@ import cv2
 
 
 class ParkingSpot:
+    """Core class that represent detected parking spots."""
     def __init__(self, cls, conf, center, contour):
         self.cls = cls  # Class
         self.conf = conf  # Confidence
