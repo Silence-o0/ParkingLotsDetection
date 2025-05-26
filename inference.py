@@ -18,7 +18,7 @@ def save_to_class_array(masks, classes, confs, H, W):
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            if area > 200:
+            if area > 400:
                 epsilon = 0.02 * cv2.arcLength(cnt, True)
                 approx = cv2.approxPolyDP(cnt, epsilon, True)
 
@@ -34,17 +34,33 @@ def save_to_class_array(masks, classes, confs, H, W):
     return spots
 
 
-def inference(model, conf, image_path):
-    results = model.predict(image_path, imgsz=960, conf=conf, show=False, line_width=2, show_labels=False, show_conf=False)
+def inference(model, conf, image):
+    results = model.predict(image, imgsz=960, conf=conf, show=False, line_width=2, show_labels=False, show_conf=False)
+
+    # result = results[0]
+    # masks = result.masks.data.cpu().numpy()
+    # classes = result.boxes.cls.cpu().numpy().astype(int)
+    # confs = result.boxes.conf.cpu().numpy()
+    #
+    # image = cv2.imread(image_path)
+    # H, W = image.shape[:2]
+    #
+    # return save_to_class_array(masks, classes, confs, H, W)
+
+    if len(results) == 0 or results[0].masks is None:
+        return []
 
     result = results[0]
-    masks = result.masks.data.cpu().numpy()
-    classes = result.boxes.cls.cpu().numpy().astype(int)
-    confs = result.boxes.conf.cpu().numpy()
 
-    image = cv2.imread(image_path)
-    H, W = image.shape[:2]
-
-    return save_to_class_array(masks, classes, confs, H, W)
+    try:
+        masks = result.masks.data.cpu().numpy()
+        classes = result.boxes.cls.cpu().numpy().astype(int)
+        confs = result.boxes.conf.cpu().numpy()
+        # image = cv2.imread(image_path)
+        H, W = image.shape[:2]
+        return save_to_class_array(masks, classes, confs, H, W)
+    except Exception as e:
+        print(f"Помилка інференсу для кадру: {str(e)}")
+        return []
 
 

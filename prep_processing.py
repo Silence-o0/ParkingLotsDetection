@@ -18,6 +18,8 @@ def max_area_quad(contour):
     best_quad = None
 
     n = len(contour)
+    if n > 20:
+        return None
     for p1 in range(n - 3):
         for p2 in range(p1 + 1, n - 2):
              for p3 in range(p2 + 1, n - 1):
@@ -125,6 +127,6 @@ def make_alter_spots(filter_spots, image):
 
     alter_spots = convert_with_geometry(filter_spots)
     # image = draw_lines_on_image(image.copy(), alter_spots)
-    return alter_spots
+    return alter_spots, image
 
 
