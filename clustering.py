@@ -1,3 +1,5 @@
+# Implements clustering algorithm
+
 from collections import deque, defaultdict
 import numpy as np
 
@@ -5,6 +7,11 @@ from prep_processing import ParkingSpotAlter
 
 
 def angle_diff_check(k1, k2):
+    """Calculates the minimal angle difference between two line slopes.
+
+    Returns:
+        float: Minimal angle difference in radians [0, π/2]
+    """
     angle1 = np.arctan(k1)
     angle2 = np.arctan(k2)
     d = abs(angle2 - angle1)
@@ -12,6 +19,18 @@ def angle_diff_check(k1, k2):
 
 
 def are_adjacent(a: ParkingSpotAlter, b: ParkingSpotAlter, a_line, a_sidelength, tol_coef):
+    """Checks if two parking spots are geometrically adjacent.
+
+    Args:
+        a: First parking spot
+        b: Second parking spot
+        a_line: Reference line parameters (slope, intercept)
+        a_sidelength: Length of reference side
+        tol_coef: Tolerance coefficient for distance check
+
+    Returns:
+        bool: True if spots are adjacent
+    """
     p1 = np.array([a.ps.center])
     p2 = np.array([b.ps.center])
 
@@ -21,9 +40,9 @@ def are_adjacent(a: ParkingSpotAlter, b: ParkingSpotAlter, a_line, a_sidelength,
     k_w = angle_diff_check(a_line[0], b.w_line[0])
 
     if k_h < k_w:
-        approx_length = a_sidelength/2 + b.height/2
+        approx_length = a_sidelength / 2 + b.height / 2
     else:
-        approx_length = a_sidelength/2 + b.width/2
+        approx_length = a_sidelength / 2 + b.width / 2
 
     tolerance = tol_coef * approx_length
 
@@ -33,15 +52,21 @@ def are_adjacent(a: ParkingSpotAlter, b: ParkingSpotAlter, a_line, a_sidelength,
 
 
 def get_slope(k0, x1, y1, x2, y2):
+    """Verifies if line segment matches reference slope within tolerance.
+
+    Args:
+        k0: Reference slope
+        x1,y1: Start point coordinates
+        x2,y2: End point coordinates
+    """
     if x2 == x1:
-        return float('inf')
-    k =  (y2 - y1) / (x2 - x1)
+        return float("inf")
+    k = (y2 - y1) / (x2 - x1)
     return angle_diff_check(k0, k) < np.pi / 10
 
 
-from collections import deque, defaultdict
-
 def assign_clusters(spots, tolerance_coef):
+    """Groups parking spots into clusters using BFS-based algorithm."""
     visited = [False] * len(spots)
     cluster_id = 0
 
@@ -62,10 +87,20 @@ def assign_clusters(spots, tolerance_coef):
                 if num_el == 2:
                     break
                 if not visited[neighbor_index]:
-                    if get_slope(spots[current].h_line[0], spots[current].ps.center[0],
-                                 spots[current].ps.center[1], other.ps.center[0], other.ps.center[1]):
-                        if are_adjacent(spots[current], other, spots[current].h_line,
-                                        spots[current].height, tolerance_coef):
+                    if get_slope(
+                        spots[current].h_line[0],
+                        spots[current].ps.center[0],
+                        spots[current].ps.center[1],
+                        other.ps.center[0],
+                        other.ps.center[1],
+                    ):
+                        if are_adjacent(
+                            spots[current],
+                            other,
+                            spots[current].h_line,
+                            spots[current].height,
+                            tolerance_coef,
+                        ):
                             queue.append(neighbor_index)
                             num_el += 1
 
@@ -75,10 +110,20 @@ def assign_clusters(spots, tolerance_coef):
                 if num_el == 2:
                     break
                 if not visited[neighbor_index]:
-                    if get_slope(spots[current].w_line[0], spots[current].ps.center[0],
-                                 spots[current].ps.center[1], other.ps.center[0], other.ps.center[1]):
-                        if are_adjacent(spots[current], other, spots[current].w_line,
-                                        spots[current].width, tolerance_coef):
+                    if get_slope(
+                        spots[current].w_line[0],
+                        spots[current].ps.center[0],
+                        spots[current].ps.center[1],
+                        other.ps.center[0],
+                        other.ps.center[1],
+                    ):
+                        if are_adjacent(
+                            spots[current],
+                            other,
+                            spots[current].w_line,
+                            spots[current].width,
+                            tolerance_coef,
+                        ):
                             queue.append(neighbor_index)
                             num_el += 1
 

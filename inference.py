@@ -1,4 +1,4 @@
-# Inference and save results to pickle
+# Inference and save results as ParkingSpot objects
 
 import numpy as np
 import cv2
@@ -7,6 +7,22 @@ from ParkingSpot import ParkingSpot
 
 
 def save_to_class_array(masks, classes, confs, H, W):
+    """Converts model outputs into ParkingSpot objects by processing masks and contours.
+
+    Args:
+        masks (np.ndarray): Array of segmentation masks from model prediction
+        classes (np.ndarray): Array of class IDs for each detected object
+        confs (np.ndarray): Array of confidence scores for each detection
+        H (int): Original image height
+        W (int): Original image width
+
+    Returns:
+        list[ParkingSpot]: List of validated parking spot objects with:
+            - Class ID
+            - Confidence score
+            - Center coordinates
+            - Contour points
+    """
     spots = []
 
     for i, cls in enumerate(classes):
@@ -14,7 +30,9 @@ def save_to_class_array(masks, classes, confs, H, W):
         best_mask = masks[i].astype(np.uint8) * 255
         best_mask = cv2.resize(best_mask, (W, H))
 
-        contours, _ = cv2.findContours(best_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(
+            best_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
@@ -29,23 +47,30 @@ def save_to_class_array(masks, classes, confs, H, W):
                         cy = int(M["m01"] / M["m00"])
                         center = (cx, cy)
 
-                        spot = ParkingSpot(cls=cls, conf=conf, center=center, contour=approx)
+                        spot = ParkingSpot(
+                            cls=cls, conf=conf, center=center, contour=approx
+                        )
                         spots.append(spot)
     return spots
 
 
 def inference(model, conf, image):
-    results = model.predict(image, imgsz=960, conf=conf, show=False, line_width=2, show_labels=False, show_conf=False)
+    """Model inference on input image.
 
-    # result = results[0]
-    # masks = result.masks.data.cpu().numpy()
-    # classes = result.boxes.cls.cpu().numpy().astype(int)
-    # confs = result.boxes.conf.cpu().numpy()
-    #
-    # image = cv2.imread(image_path)
-    # H, W = image.shape[:2]
-    #
-    # return save_to_class_array(masks, classes, confs, H, W)
+    Args:
+        model (YOLO): Weight of the model
+        conf (float): Minimum confidence threshold (0-1)
+        image (np.ndarray): Input image in BGR format
+    """
+    results = model.predict(
+        image,
+        imgsz=960,
+        conf=conf,
+        show=False,
+        line_width=2,
+        show_labels=False,
+        show_conf=False,
+    )
 
     if len(results) == 0 or results[0].masks is None:
         return []
@@ -56,11 +81,8 @@ def inference(model, conf, image):
         masks = result.masks.data.cpu().numpy()
         classes = result.boxes.cls.cpu().numpy().astype(int)
         confs = result.boxes.conf.cpu().numpy()
-        # image = cv2.imread(image_path)
         H, W = image.shape[:2]
         return save_to_class_array(masks, classes, confs, H, W)
     except Exception as e:
-        print(f"Помилка інференсу для кадру: {str(e)}")
+        print(f"Inference error: {str(e)}")
         return []
-
-

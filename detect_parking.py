@@ -1,3 +1,4 @@
+# Provide video/image processing pipeline
 import argparse
 import sys
 
@@ -12,7 +13,17 @@ from prep_processing import make_alter_spots
 import threading
 from queue import Queue
 
+
 def process_image(model, conf, file_path, output_path="result.png", plot=False):
+    """Processes an image to detect and visualize parking spots.
+
+    Args:
+        model (YOLO): Weight of the model
+        conf (float): Confidence threshold for detection (0-1)
+        file_path (str): Path to input image file
+        output_path (str, optional): Path to save output image. Defaults to "result.png"
+        plot (bool, optional): Whether to display the result. Defaults to False
+    """
     image = cv2.imread(file_path)
     spots = inference(model, conf, image)
 
@@ -30,12 +41,19 @@ def process_image(model, conf, file_path, output_path="result.png", plot=False):
     plt.figure(figsize=(16, 16))
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     plt.axis("off")
-    plt.savefig(output_path, bbox_inches='tight', pad_inches=0)
+    plt.savefig(output_path, bbox_inches="tight", pad_inches=0)
     if plot:
         plt.show()
 
 
 def process_video(model, conf, video_source):
+    """Processes video stream or file to detect parking spots in real-time and visualize it.
+
+    Args:
+        model (YOLO): Weight of the model
+        conf (float): Confidence threshold for detection (0-1)
+        video_source (str/int): Video file path or camera index (0 for default camera)
+    """
     if isinstance(video_source, int):
         cap = cv2.VideoCapture(video_source, cv2.CAP_DSHOW)
     else:
@@ -44,8 +62,8 @@ def process_video(model, conf, video_source):
     if not cap.isOpened():
         raise ValueError(f"File can't be opened: {video_source}")
 
-    cv2.namedWindow('Video', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Video', 500, 300)
+    cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Video", 500, 300)
 
     input_queue = Queue(maxsize=1)
     output_queue = Queue(maxsize=1)
@@ -82,9 +100,9 @@ def process_video(model, conf, video_source):
                 spot.draw_classes(frame, overlay, alpha=0.3)
 
             vis = cv2.addWeighted(overlay, 0.3, frame, 0.7, 0)
-            cv2.imshow('Video', vis)
+            cv2.imshow("Video", vis)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
     finally:
@@ -93,14 +111,37 @@ def process_video(model, conf, video_source):
         cap.release()
         cv2.destroyAllWindows()
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Detect parking spots from stream or file.")
-    parser.add_argument('--source', type=str, required=True,
-                        help='Use "stream" for live video or provide path to image/video file.')
-    parser.add_argument('--output', type=str, default=None,
-                        help='Optional path to save the output (only for image input).')
-    parser.add_argument('--plot', type=bool, default=False,
-                        help='Optional. Show the result visually (only for image input). Default is False.')
+    """Handles command line arguments and routes processing to appropriate functions.
+    Supports both image files and video streams.
+
+    Command Line Args:
+        --source: 'stream' for live video or path to image/video file
+        --output: Optional output path (image processing only)
+        --plot: Whether to display results (image processing only)
+    """
+    parser = argparse.ArgumentParser(
+        description="Detect parking spots from stream or file."
+    )
+    parser.add_argument(
+        "--source",
+        type=str,
+        required=True,
+        help='Use "stream" for live video or provide path to image/video file.',
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Optional path to save the output (only for image input).",
+    )
+    parser.add_argument(
+        "--plot",
+        type=bool,
+        default=False,
+        help="Optional. Show the result visually (only for image input). Default is False.",
+    )
     args = parser.parse_args()
 
     model = YOLO("model.pt")
@@ -111,7 +152,7 @@ def main():
     else:
         print(f"Processing file: {args.source}")
         try:
-            if args.source.lower().endswith(('.png', '.jpg', '.jpeg')):
+            if args.source.lower().endswith((".png", ".jpg", ".jpeg")):
                 if args.output is not None:
                     process_image(model, conf, args.source, args.output, plot=args.plot)
                 else:
@@ -121,6 +162,7 @@ def main():
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
