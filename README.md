@@ -20,7 +20,7 @@ A system for detecting vacant and occuied parking spots using YOLOv11 segmentati
 
 ## Model
 
-YOLOv11m-seg (for instance segmentation) was trained on the custom dataset of parking spots.
+YOLO11m-seg (for instance segmentation) was trained on the custom dataset of parking spots.
 
 ### Training Details
 
