@@ -46,27 +46,22 @@ pip install -r requirements.txt
 ### Detect from webcam (live stream)
 
 ```bash
-python detect_parking.py --source stream
+python detect_parking.py <camera_id>
 ```
 
 ### Detect from an image or videofile
 
 ```bash
-python detect_parking.py --source path/to/file
+python detect_parking.py <path/to/file>
 ```
 
 ### Flags
 
-* `--source`
-
-  * Use `stream` for webcam input  
-  * Or provide a file path for an image or video
-
 * `--output`
 
-  * Optional. Path to save the result (only for image or video input)
+  * Optional. Path to save the result (only for image input).
 
 * `--plot`
 
-  * Optional. Set to `True` to display the image with overlay (ignored for stream input). Default is `False`
+  * Optional. Show the result visually (only for image input).
 
