@@ -2,8 +2,8 @@
 
 A system for detecting vacant and occuied parking spots using YOLOv11 segmentation and clustering.
 
-![Example image](results/example_result1.png)
-![Example image](results/example_result2.png)
+![Example image](example_result1.png)
+![Example image](example_result2.png)
 
 ## Dataset
 
