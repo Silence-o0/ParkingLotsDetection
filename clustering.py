@@ -3,7 +3,7 @@
 from collections import deque, defaultdict
 import numpy as np
 
-from prep_processing import ParkingSpotAlter
+from preprocessing import ParkingSpotAlter
 
 
 def angle_diff_check(k1, k2):

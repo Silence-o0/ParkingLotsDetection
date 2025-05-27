@@ -3,7 +3,7 @@
 import numpy as np
 import cv2
 
-from ParkingSpot import ParkingSpot
+from parking_spot import ParkingSpot
 
 
 def save_to_class_array(masks, classes, confs, H, W):

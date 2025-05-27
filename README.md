@@ -31,7 +31,7 @@ YOLO11m-seg (for instance segmentation) was trained on the custom dataset of par
 
 ## Clustering
 
-A custom clustering method groups parking spots into blocks. Clusters with only one or two spots are considered noise and ignored. The algorithm works like DBSCAN, using BFS to find nearby spots without a fixed distance parameter. Distances depend on the size of the spots, which helps handle different spacing caused by camera perspective.
+A custom clustering method groups parking spots into blocks. Clusters with only one or two spots are considered noise and ignored. The algorithm use BFS to find nearby spots without a fixed distance parameter. Distances depend on the size of the spots, which helps handle different spacing caused by camera perspective.
 
 ## Installation
 

@@ -8,7 +8,7 @@ from ultralytics import YOLO
 
 from clustering import assign_clusters
 from inference import inference
-from prep_processing import make_alter_spots
+from preprocessing import make_alter_spots
 
 import threading
 from queue import Queue
@@ -55,12 +55,13 @@ def process_video(model, conf, video_source):
         video_source (str/int): Video file path or camera index (0 for default camera)
     """
     if isinstance(video_source, int):
-        cap = cv2.VideoCapture(video_source, cv2.CAP_DSHOW)
+        cap = cv2.VideoCapture(video_source)
+        if not cap.isOpened():
+            raise ValueError(f"File can't be opened: {video_source}")
     else:
         cap = cv2.VideoCapture(str(video_source))
-
-    if not cap.isOpened():
-        raise ValueError(f"File can't be opened: {video_source}")
+        if not cap.isOpened():
+            raise ValueError(f"File can't be opened: {video_source}")
 
     cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Video", 500, 300)
@@ -125,10 +126,9 @@ def main():
         description="Detect parking spots from stream or file."
     )
     parser.add_argument(
-        "--source",
+        "source",
         type=str,
-        required=True,
-        help='Use "stream" for live video or provide path to image/video file.',
+        help='Camera index (0,1,2,...) or path to image/video file.'
     )
     parser.add_argument(
         "--output",
@@ -138,30 +138,26 @@ def main():
     )
     parser.add_argument(
         "--plot",
-        type=bool,
-        default=False,
-        help="Optional. Show the result visually (only for image input). Default is False.",
+        action="store_true",
+        help="Optional. Show the result visually (only for image input).",
     )
     args = parser.parse_args()
 
     model = YOLO("model.pt")
     conf = 0.5
 
-    if args.source == "stream":
-        process_video(model, conf, 0)
-    else:
-        print(f"Processing file: {args.source}")
-        try:
-            if args.source.lower().endswith((".png", ".jpg", ".jpeg")):
-                if args.output is not None:
-                    process_image(model, conf, args.source, args.output, plot=args.plot)
-                else:
-                    process_image(model, conf, args.source, plot=args.plot)
+    try:
+        video_source = int(args.source)
+        process_video(model, conf, video_source)
+    except ValueError:
+        video_source = args.source
+        if video_source.lower().endswith((".png", ".jpg", ".jpeg")):
+            if args.output is not None:
+                process_image(model, conf, video_source, args.output, plot=args.plot)
             else:
-                process_video(model, conf, args.source)
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
+                process_image(model, conf, video_source, plot=args.plot)
+        else:
+            process_video(model, conf, video_source)
 
 
 if __name__ == "__main__":
